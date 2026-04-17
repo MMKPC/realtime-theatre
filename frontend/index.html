@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>RealTime Theatre — Type a world. The stage comes alive.</title>
+<meta name="description" content="Type a scene. A generated backdrop appears. A 2D host steps on stage. Live particles, mist, rain, fire, parallax — a real-time theatre running in your browser." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=zodiak@400,600,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='6' width='26' height='20' rx='3' fill='%230a1b2f'/><path d='M3 11 L29 11' stroke='%23ffcf6e' stroke-width='1.4'/><circle cx='16' cy='18' r='4' fill='none' stroke='%232bd4c4' stroke-width='2'/></svg>" />
+</head>
+<body>
+
+<!-- Stage: generated backdrop + canvas VFX + 2D host avatar + HUD -->
+<main class="stage" id="stage">
+  <img id="basePlate" alt="" class="base-plate" />
+  <canvas id="vfx" class="vfx-canvas"></canvas>
+
+  <!-- Host avatar — SVG character layered above the scene -->
+  <div class="host" id="host" aria-hidden="true">
+    <svg viewBox="0 0 200 360" class="host-svg" id="hostSvg">
+      <defs>
+        <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1a1422"/><stop offset="1" stop-color="#0a0610"/>
+        </linearGradient>
+        <linearGradient id="jacket" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#123a5c"/><stop offset="1" stop-color="#06182a"/>
+        </linearGradient>
+        <radialGradient id="cheek" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#ff9d8a" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#ff9d8a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- soft ground shadow -->
+      <ellipse id="hostShadow" cx="100" cy="348" rx="55" ry="8" fill="#000" opacity=".45"/>
+
+      <!-- body group (we animate this whole group) -->
+      <g id="hostBody">
+        <!-- torso / jacket -->
+        <path id="torso"
+              d="M58 210
+                 Q 60 180 80 170
+                 L 120 170
+                 Q 140 180 142 210
+                 L 150 330
+                 Q 150 340 140 340
+                 L 60 340
+                 Q 50 340 50 330 Z"
+              fill="url(#jacket)"/>
+        <!-- collar / shirt -->
+        <path d="M88 175 L100 195 L112 175 L100 205 Z" fill="#e9f3ff"/>
+        <!-- accent scarf -->
+        <path d="M80 170 L120 170 L118 182 L82 182 Z" fill="#2bd4c4"/>
+
+        <!-- left arm (waves) -->
+        <g id="armLeft">
+          <path d="M58 210 Q 40 250 48 300" stroke="url(#jacket)" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <circle cx="48" cy="300" r="12" fill="#f1c79a"/> <!-- hand -->
+        </g>
+        <!-- right arm -->
+        <g id="armRight">
+          <path d="M142 210 Q 162 252 156 308" stroke="url(#jacket)" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <circle cx="156" cy="308" r="12" fill="#f1c79a"/>
+        </g>
+
+        <!-- neck -->
+        <rect x="90" y="150" width="20" height="22" fill="#f1c79a"/>
+
+        <!-- head group (we bob this) -->
+        <g id="hostHead">
+          <!-- head -->
+          <ellipse cx="100" cy="120" rx="36" ry="42" fill="#f1c79a"/>
+          <!-- cheeks -->
+          <ellipse cx="78" cy="130" rx="9" ry="6" fill="url(#cheek)"/>
+          <ellipse cx="122" cy="130" rx="9" ry="6" fill="url(#cheek)"/>
+          <!-- hair -->
+          <path d="M64 110 Q 64 76 100 72 Q 138 76 136 112 Q 136 96 124 92 Q 110 108 90 102 Q 76 100 74 110 Z" fill="url(#hair)"/>
+          <!-- ears -->
+          <ellipse cx="64" cy="122" rx="5" ry="8" fill="#e0a87c"/>
+          <ellipse cx="136" cy="122" rx="5" ry="8" fill="#e0a87c"/>
+          <!-- eyes -->
+          <g id="eyes">
+            <ellipse class="eye" cx="86" cy="122" rx="4" ry="5" fill="#0a0610"/>
+            <ellipse class="eye" cx="114" cy="122" rx="4" ry="5" fill="#0a0610"/>
+            <circle cx="87" cy="120" r="1.2" fill="#fff"/>
+            <circle cx="115" cy="120" r="1.2" fill="#fff"/>
+          </g>
+          <!-- brows -->
+          <path d="M80 112 Q 86 108 92 112" stroke="#0a0610" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M108 112 Q 114 108 120 112" stroke="#0a0610" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- mouth -->
+          <path id="mouth" d="M90 142 Q 100 150 110 142" stroke="#5b2a2a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        </g>
+      </g>
+    </svg>
+
+    <!-- Speech bubble -->
+    <div class="bubble" id="bubble"><span id="bubbleText"></span></div>
+  </div>
+
+  <div class="grade" id="grade"></div>
+  <div class="vignette"></div>
+
+  <header class="top">
+    <a class="brand" href="#stage" aria-label="RealTime Theatre">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect x="3" y="6" width="26" height="20" rx="3" fill="currentColor" opacity=".15"/>
+        <path d="M3 11 L29 11" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="16" cy="18" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span>RealTime&nbsp;Theatre</span>
+    </a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#stack">Stack</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="https://github.com/MMKPC/realtime-theatre" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hud">
+    <p class="eyebrow" id="sceneLabel">curtain up</p>
+    <h1 id="sceneTitle">Type a world. The stage comes alive.</h1>
+    <p class="lede" id="sceneSub">
+      A generated backdrop, a 2D host who steps on stage, and live particles —
+      water, mist, rain, embers, stars — all rendered in your browser in real time.
+    </p>
+
+    <form id="promptForm" class="prompt-form" autocomplete="off">
+      <input
+        id="promptInput"
+        name="prompt"
+        type="text"
+        placeholder="Make a waterfall at sunset in a jungle canyon"
+        aria-label="Scene prompt"
+        value="A waterfall at sunset in a jungle canyon, mist, golden light" />
+      <button type="submit" id="generateBtn">
+        <span class="label">Stage it</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <div class="chips">
+      <button class="chip" data-p="A thunderous waterfall crashing into a jungle canyon at dusk, glowing mist">Waterfall · dusk</button>
+      <button class="chip" data-p="Neon cyberpunk Tokyo street at night, heavy rain, puddles, reflections">Cyberpunk rain</button>
+      <button class="chip" data-p="An active volcano erupting at night, lava rivers, burning embers, smoke">Volcano · night</button>
+      <button class="chip" data-p="A calm alpine lake at dawn, low fog, mirror-still water, distant snowy peaks">Alpine dawn</button>
+      <button class="chip" data-p="A cosmic nebula, swirling stardust, distant galaxies, aurora ribbons">Cosmic nebula</button>
+      <button class="chip" data-p="Snow storm over a dark pine forest, heavy snowfall, ghostly moonlight">Snow storm</button>
+    </div>
+
+    <p class="meta" id="meta"></p>
+  </div>
+
+  <!-- host toggle -->
+  <button class="host-toggle" id="hostToggle" aria-label="Toggle host avatar" title="Hide / show host">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+    <span>Host</span>
+  </button>
+</main>
+
+<section id="how" class="section">
+  <div class="wrap">
+    <p class="kicker">How it works</p>
+    <h2>Prompt → backdrop → live stage</h2>
+    <p class="intro">
+      The product idea: <strong>real-time entertainment</strong>, not flat images. Type a world, the
+      theatre stages it — generated backdrop, a 2D host reacting to the setting, and procedural
+      particle VFX driven by scene analysis. It's the 2.5D / VFX sweet spot between plain
+      text-to-image and full 3D asset generation.
+    </p>
+
+    <div class="pipeline">
+      <div class="node"><span class="num">1</span><h3>Prompt</h3><p>User types a world. Client POSTs to <code>/api/scene</code>.</p></div>
+      <div class="node"><span class="num">2</span><h3>Backdrop</h3><p>Image model (FLUX-class) generates the still plate.</p></div>
+      <div class="node"><span class="num">3</span><h3>Scene read</h3><p>Server classifies scene type, time of day, mood, palette. (Depth-Anything-V2 slot.)</p></div>
+      <div class="node"><span class="num">4</span><h3>Stage</h3><p>Browser renders VFX: water, foam, mist, rain, fire, stars, parallax.</p></div>
+      <div class="node"><span class="num">5</span><h3>Host</h3><p>2D avatar idles, breathes, blinks, gestures, reacts to each scene.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="stack" class="section alt">
+  <div class="wrap">
+    <p class="kicker">The stack</p>
+    <h2>Exact repos and models</h2>
+    <p class="intro">All open, all current. The MVP above can be swapped to these in production.</p>
+
+    <table class="stack-table">
+      <thead>
+        <tr><th>Layer</th><th>Repo / Model</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Text-to-image</td>
+          <td>
+            <a href="https://github.com/black-forest-labs/flux">github.com/black-forest-labs/flux</a><br>
+            <a href="https://huggingface.co/black-forest-labs/FLUX.1-dev">huggingface.co/black-forest-labs/FLUX.1-dev</a><br>
+            <a href="https://huggingface.co/black-forest-labs/FLUX.1-schnell">FLUX.1-schnell</a>
+          </td>
+          <td>The backdrop generator. Current open SOTA for prompt following.</td>
+        </tr>
+        <tr>
+          <td>Pipeline library</td>
+          <td><a href="https://github.com/huggingface/diffusers">github.com/huggingface/diffusers</a></td>
+          <td>Standard Python pipeline for FLUX, SDXL, CogVideoX.</td>
+        </tr>
+        <tr>
+          <td>Workflow UI</td>
+          <td>
+            <a href="https://github.com/Comfy-Org/ComfyUI">Comfy-Org/ComfyUI</a> ·
+            <a href="https://github.com/Comfy-Org/ComfyUI-Manager">ComfyUI-Manager</a>
+          </td>
+          <td>Node graph for prompt → control → depth → upscale → detail → post.</td>
+        </tr>
+        <tr>
+          <td>Depth / structure</td>
+          <td>
+            <a href="https://github.com/DepthAnything/Depth-Anything-V2">DepthAnything/Depth-Anything-V2</a> ·
+            <a href="https://huggingface.co/depth-anything/Depth-Anything-V2-Large">HF model</a>
+          </td>
+          <td>Depth map → parallax layers and particle occlusion.</td>
+        </tr>
+        <tr>
+          <td>Structural conditioning</td>
+          <td>
+            <a href="https://huggingface.co/black-forest-labs/FLUX.1-Depth-dev">FLUX.1-Depth-dev</a> ·
+            <a href="https://huggingface.co/black-forest-labs/FLUX.1-Canny-dev">FLUX.1-Canny-dev</a>
+          </td>
+          <td>ControlNet-style conditioning to keep composition across regenerations.</td>
+        </tr>
+        <tr>
+          <td>Personalization</td>
+          <td><a href="https://github.com/adobe-research/custom-diffusion">adobe-research/custom-diffusion</a></td>
+          <td>Teach a signature style / brand concept from a few reference images.</td>
+        </tr>
+        <tr>
+          <td>Text/image-to-video</td>
+          <td>
+            <a href="https://github.com/zai-org/CogVideo">zai-org/CogVideo</a> ·
+            <a href="https://huggingface.co/zai-org/CogVideoX-5b">CogVideoX-5B</a>
+          </td>
+          <td>Premium tier: short motion clips once the 2.5D version is solid.</td>
+        </tr>
+        <tr>
+          <td>Neural scenes (later)</td>
+          <td><a href="https://github.com/nerfstudio-project/gsplat">nerfstudio-project/gsplat</a></td>
+          <td>Gaussian Splatting when you graduate from 2.5D to neural scenes.</td>
+        </tr>
+        <tr>
+          <td>3D assets (later)</td>
+          <td>
+            <a href="https://github.com/Tencent-Hunyuan/Hunyuan3D-2">Hunyuan3D-2</a> ·
+            <a href="https://github.com/microsoft/TRELLIS">microsoft/TRELLIS</a>
+          </td>
+          <td>Only if the product shifts to "download a textured mesh."</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="roadmap" class="section">
+  <div class="wrap">
+    <p class="kicker">Roadmap ladder</p>
+    <h2>Five rungs, one at a time</h2>
+    <ol class="ladder">
+      <li><strong>Prompt → backdrop.</strong> FLUX.1-dev via Diffusers. Seed control + negative prompts.</li>
+      <li><strong>Backdrop → depth / layers.</strong> Depth-Anything-V2. RGBD + foreground/background masks.</li>
+      <li><strong>Browser stage.</strong> Particles, flow, mist, foam, distortion, lighting, parallax. This page, scaled up to WebGPU.</li>
+      <li><strong>Host avatar.</strong> Reactive 2D / 3D character that responds to scene and voice input.</li>
+      <li><strong>Motion mode.</strong> CogVideoX image-to-video for 6-second premium clips.</li>
+      <li><em>Later:</em> Gaussian splats (gsplat) or textured 3D assets (Hunyuan3D-2, TRELLIS).</li>
+    </ol>
+    <p class="footnote">Not a 3D asset generator. A living stage. That's the product wedge.</p>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>RealTime Theatre · MMKPC Studios · <a href="https://github.com/MMKPC/realtime-theatre" target="_blank" rel="noopener">github.com/MMKPC/realtime-theatre</a></p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

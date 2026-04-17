@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+
+# Optional — production workers (uncomment the ones you wire up):
+# diffusers>=0.33
+# transformers>=4.44
+# torch>=2.3
+# accelerate>=0.33
+# sentencepiece
+# pillow
