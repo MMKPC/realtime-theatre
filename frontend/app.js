@@ -8,11 +8,23 @@
 // this script loads, or override the default below.
 // ─────────────────────────────────────────────────────────────
 
-const API = (typeof window !== 'undefined' && window.__API__)
-  ? window.__API__
-  : ('__PORT_8000__'.startsWith('__')
-      ? 'http://localhost:8000'
-      : '__PORT_8000__');
+// Resolution order:
+//   1. window.__API__ override (for custom deployments)
+//   2. A proxied port placeholder that gets rewritten by the dev deploy tool
+//   3. Same-origin '' (Vercel, any single-host deploy)
+//   4. localhost:8000 (local dev, file://)
+const API = (() => {
+  if (typeof window === 'undefined') return '';
+  if (window.__API__) return window.__API__;
+  const port = '__PORT_8000__';
+  if (!port.startsWith('__')) return port;
+  const { protocol, hostname } = window.location;
+  if (protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  // Same-origin: backend is served at /api/* by the same host (e.g. Vercel)
+  return '';
+})();
 
 // ================================================================
 // DOM

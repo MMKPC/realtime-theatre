@@ -22,3 +22,6 @@ dist/
 .env
 .env.local
 qa-*.png
+
+# Vercel
+.vercel
