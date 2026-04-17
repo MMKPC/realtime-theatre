@@ -84,8 +84,23 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;back
   color:var(--ink);
 }
 .brand svg{color:var(--accent)}
-.top nav{display:flex; gap:22px; font-size:14px; color:var(--ink-soft)}
+.top nav{display:flex; align-items:center; gap:22px; font-size:14px; color:var(--ink-soft); padding-right:96px}
+.top nav a{color:var(--ink-soft); text-decoration:none}
 .top nav a:hover{color:var(--ink)}
+.gh-link{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:7px 14px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:rgba(8,14,24,.55);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  color:var(--ink) !important;
+  font-weight:600;
+  transition:background .2s, border-color .2s, color .2s;
+}
+.gh-link:hover{ background:rgba(8,14,24,.85); border-color:var(--accent); color:var(--accent) !important }
+.gh-link svg{ display:block }
 
 /* HUD */
 .hud{
@@ -339,7 +354,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;back
 
 .host-toggle{
   position:absolute;
-  right:20px; top:20px;
+  right:20px; top:72px;
   z-index:6;
   background:rgba(8,14,24,.55);
   color:var(--ink);
@@ -356,7 +371,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;back
 .host-toggle:hover{ background:rgba(8,14,24,.8); color:var(--accent) }
 .host-toggle.off{ color:var(--ink-dim) }
 @media (max-width: 900px){
-  .top nav a:not(:last-child){ display:none }
+  .top nav a:not(.gh-link){ display:none }
+  .top nav{ padding-right:0 }
   .host-toggle{ top:auto; bottom:12px; right:12px }
 }
 @media (max-width: 520px){
@@ -367,7 +383,10 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;back
 /* Mobile */
 @media (max-width: 700px){
   .top{padding:14px 18px}
-  .top nav{display:none}
+  .top nav a:not(.gh-link){ display:none }
+  .top nav{ padding-right:0; gap:0 }
+  .gh-link span{ display:none }
+  .gh-link{ padding:8px 10px }
   .hud{left:14px; right:14px; bottom:14px; padding:20px}
   .section{padding:80px 20px}
   .stack-table{font-size:13px}
