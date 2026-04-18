@@ -10,6 +10,12 @@
 A generated backdrop, a 2D host who steps on stage, and live procedural particles — water,
 mist, rain, embers, stars, parallax — all rendered in your browser in real time.
 
+### 🔗 [**Live site → realtime-theatre.vercel.app**](https://realtime-theatre.vercel.app)
+
+![RealTime Theatre — curtain up](assets/screenshot-hero.png)
+
+<sub>Curtain-up hero · prompt bar, 2D host, procedural VFX canvas</sub>
+
 > Not a 3D asset generator. A living stage. That's the product wedge.
 
 ---
@@ -140,6 +146,12 @@ running on open weights. `docs/ARCHITECTURE.md` spells out every difference and 
 where to swap in real Diffusers / Depth-Anything workers. The browser renderer and host
 avatar are fully real.
 
+## Credits
+
+Built by **Matthew Mitchell** · MMKPC Studios · <memitchell@mmkpcstudios.com>
+
+More work: [github.com/MMKPC](https://github.com/MMKPC)
+
 ## License
 
-[MIT](./LICENSE) — © 2026 MMKPC Studios. Fork freely. Credit appreciated.
+[MIT](./LICENSE) — © 2026 Matthew Mitchell / MMKPC Studios. Fork freely. Credit appreciated.

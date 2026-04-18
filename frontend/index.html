@@ -3,8 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>RealTime Theatre — Type a world. The stage comes alive.</title>
+<title>RealTime Theatre — Matthew Mitchell / MMKPC Studios</title>
 <meta name="description" content="Type a scene. A generated backdrop appears. A 2D host steps on stage. Live particles, mist, rain, fire, parallax — a real-time theatre running in your browser." />
+<meta name="author" content="Matthew Mitchell — MMKPC Studios" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="RealTime Theatre — Type a world. The stage comes alive." />
+<meta property="og:description" content="Prompt → generated backdrop + 2D host + live procedural VFX in your browser. By Matthew Mitchell / MMKPC Studios." />
+<meta property="og:url" content="https://realtime-theatre.vercel.app" />
+<meta property="og:site_name" content="MMKPC Studios" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="RealTime Theatre" />
+<meta name="twitter:description" content="Type a world. The stage comes alive. By Matthew Mitchell / MMKPC Studios." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=zodiak@400,600,800&display=swap" rel="stylesheet">
@@ -126,6 +135,7 @@
 
   <div class="hud">
     <p class="eyebrow" id="sceneLabel">curtain up</p>
+    <p class="eyebrow eyebrow--byline">by Matthew Mitchell / MMKPC Studios</p>
     <h1 id="sceneTitle">Type a world. The stage comes alive.</h1>
     <p class="lede" id="sceneSub">
       A generated backdrop, a 2D host who steps on stage, and live particles —
@@ -283,7 +293,15 @@
 </section>
 
 <footer class="foot">
-  <p>RealTime Theatre · MMKPC Studios · <a href="https://github.com/MMKPC/realtime-theatre" target="_blank" rel="noopener">github.com/MMKPC/realtime-theatre</a></p>
+  <p class="foot-credit">
+    Built by <strong>Matthew Mitchell</strong> · <span class="foot-studio">MMKPC Studios</span>
+  </p>
+  <p class="foot-links">
+    <a href="https://github.com/MMKPC/realtime-theatre" target="_blank" rel="noopener">Source on GitHub</a>
+    <span aria-hidden="true">·</span>
+    <a href="https://github.com/MMKPC" target="_blank" rel="noopener">More work (MMKPC)</a>
+  </p>
+  <p class="foot-meta">RealTime Theatre · MIT · © 2026 Matthew Mitchell</p>
 </footer>
 
 <script src="app.js"></script>
